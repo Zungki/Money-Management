@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
-:root { color-scheme: light; --background: #f7f8f6; --foreground: #1c2822; }
+:root { color-scheme: light; --background: #faf9f3; --foreground: #1c2822; --brand-green: #1f5137; --brand-gold: #b28a25; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, "Noto Sans Thai", sans-serif; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
-::selection { background: #d4e7d8; }
+::selection { background: #efe5c5; }
 
 /* Keep long goal calendars inside their cards instead of stretching the page. */
 section.rounded-2xl > div.space-y-2 {
@@ -14,8 +14,8 @@ section.rounded-2xl > div.space-y-2 {
   overscroll-behavior: contain;
   padding-right: 0.4rem;
   scrollbar-width: thin;
-  scrollbar-color: #bdcdbf transparent;
+  scrollbar-color: #cfc08b transparent;
 }
 section.rounded-2xl > div.space-y-2::-webkit-scrollbar { width: 6px; }
-section.rounded-2xl > div.space-y-2::-webkit-scrollbar-thumb { border-radius: 999px; background: #bdcdbf; }
+section.rounded-2xl > div.space-y-2::-webkit-scrollbar-thumb { border-radius: 999px; background: #cfc08b; }
 section.rounded-2xl > div.space-y-2::-webkit-scrollbar-track { background: transparent; }
