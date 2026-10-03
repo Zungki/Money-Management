@@ -7,6 +7,16 @@ button, input, select { font: inherit; }
 button { cursor: pointer; }
 ::selection { background: #efe5c5; }
 
+.money-stat { transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease; }
+.money-stat:hover { transform: translateY(-3px); border-color: #d5e2d5; box-shadow: 0 12px 28px rgba(39, 79, 49, .07); }
+.savings-hero { background: radial-gradient(ellipse at 90% 10%, rgba(198, 163, 66, .2), transparent 35%), linear-gradient(125deg, #183f2b 0%, #24583c 52%, #3b7047 100%); }
+.hero-orb { position: absolute; border: 1px solid rgba(255,255,255,.09); border-radius: 9999px; pointer-events: none; }
+.hero-orb-one { width: 300px; height: 300px; right: -90px; top: -190px; }
+.hero-orb-two { width: 420px; height: 420px; right: -150px; top: -220px; }
+.hero-coin { position: absolute; top: 21%; right: 39%; color: #f3d979; opacity: .7; font-size: 16px; animation: coin-float 3.5s ease-in-out infinite; pointer-events: none; }
+@keyframes coin-float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(18deg); } }
+@media (prefers-reduced-motion: reduce) { .money-stat, .hero-coin { animation: none; transition: none; } }
+
 /* Keep long goal calendars inside their cards instead of stretching the page. */
 section.rounded-2xl > div.space-y-2 {
   max-height: min(18rem, 55vh);
