@@ -209,15 +209,35 @@ function Overview({ t, lang, money, income, expense, onView, featureItems, goal,
   </>;
 }
 function CashBar({ label, value, max, money, color }: { label: string; value: number; max: number; money: (n: number) => string; color: string }) { return <div><div className="mb-1.5 flex justify-between text-[10px]"><span className="text-[#87938a]">{label}</span><span className="font-semibold text-[#46574c]">{money(value)}</span></div><div className="h-2 overflow-hidden rounded-full bg-[#f0f3ef]"><div className={`h-full rounded-full ${color}`} style={{ width: `${Math.max(2, value / max * 100)}%` }}/></div></div>; }
-function TransactionTable({ items, t, money, deleteItem, lang }: { items: Item[]; t: Record<string, string>; money: (n: number) => string; deleteItem: (id: number) => void; lang: Lang }) { return <>
-  <div className="divide-y divide-[#f0f2ef] sm:hidden">{items.map(item => <div key={item.id} className="flex min-w-0 items-center gap-2.5 py-3 first:pt-1 last:pb-1">
-    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-[10px] ${item.kind === "income" ? "bg-[#dcefe2] text-[#427153]" : "bg-[#f7eadb] text-[#856612]"}`}>{item.kind === "income" ? "↗" : "▤"}</span>
-    <div className="min-w-0 flex-1"><div className="truncate text-[12px] font-medium">{item.title}</div><div className="mt-0.5 truncate text-[10px] text-[#89948b]">{item.category} · {new Date(item.createdAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short" })}</div></div>
-    <div className={`shrink-0 whitespace-nowrap text-right text-[11px] font-semibold tabular-nums ${item.kind === "income" ? "text-[#43805a]" : "text-[#48544b]"}`}>{item.kind === "income" ? "+" : "−"}{money(item.amount)}</div>
-    <button onClick={() => deleteItem(item.id)} aria-label={t.delete} className="grid h-9 w-8 shrink-0 place-items-center rounded-lg text-[#aeb7b0] hover:bg-rose-50 hover:text-rose-500"><X size={14}/></button>
-  </div>)}</div>
-  <div className="hidden overflow-x-auto sm:block"><table className="w-full min-w-[450px] text-left"><thead><tr className="border-b border-[#f0f2ef] text-[9px] font-medium text-[#9ba49c]"><th className="pb-2 pl-1">{t.title}</th><th className="pb-2">{t.category}</th><th className="pb-2">{t.date}</th><th className="pb-2 text-right">{t.amount}</th><th/></tr></thead><tbody>{items.map(item => <tr key={item.id} className="border-b border-[#f3f4f2] last:border-0"><td className="py-2.5 pl-1"><div className="flex items-center gap-2.5"><span className={`flex h-8 w-8 items-center justify-center rounded-[10px] ${item.kind === "income" ? "bg-[#dcefe2] text-[#427153]" : "bg-[#f7eadb] text-[#856612]"}`}>{item.kind === "income" ? "↗" : "▤"}</span><span className="text-[11px] font-medium">{item.title}</span></div></td><td className="py-2.5 text-[10px] text-[#859087]">{item.category}</td><td className="py-2.5 text-[10px] text-[#9aa39b]">{new Date(item.createdAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short" })}</td><td className={`py-2.5 text-right text-[11px] font-semibold ${item.kind === "income" ? "text-[#43805a]" : "text-[#48544b]"}`}>{item.kind === "income" ? "+" : "−"}{money(item.amount)}</td><td className="pl-2"><button onClick={() => deleteItem(item.id)} aria-label={t.delete} className="text-[#aeb7b0] hover:text-rose-500"><X size={13}/></button></td></tr>)}</tbody></table></div>
-  </>; }
+function TransactionTable({ items, t, money, deleteItem, lang }: { items: Item[]; t: Record<string, string>; money: (n: number) => string; deleteItem: (id: number) => void; lang: Lang }) {
+  const expenses = items.filter(item => item.kind === "expense");
+  const incomes = items.filter(item => item.kind === "income");
+  const expenseTotal = expenses.reduce((total, item) => total + item.amount, 0);
+  const expenseLabel = lang === "th" ? `รายจ่ายทั้งหมด · ${expenses.length} รายการ` : `All expenses · ${expenses.length} items`;
+  const dateLabel = (item: Item) => new Date(item.createdAt).toLocaleDateString(lang === "th" ? "th-TH" : "en-US", { day: "numeric", month: "short" });
+  const ExpenseDetails = ({ compact = false }: { compact?: boolean }) => expenses.length > 0 ? <details className="group">
+    <summary className={`flex cursor-pointer list-none items-center gap-2.5 rounded-lg py-3 outline-none marker:hidden [&::-webkit-details-marker]:hidden ${compact ? "px-1 hover:bg-[#fafbf9]" : "px-2 hover:bg-[#fafbf9]"}`}>
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#f7eadb] text-[#856612]">▤</span>
+      <span className="min-w-0 flex-1 truncate text-[11px] font-semibold">{expenseLabel}</span>
+      <span className="shrink-0 whitespace-nowrap text-right text-[11px] font-semibold tabular-nums text-[#48544b]">−{money(expenseTotal)}</span>
+      <span className="ml-1 shrink-0 text-[#829087] transition-transform group-open:rotate-180">⌄</span>
+    </summary>
+    <div className="mb-2 ml-3 border-l border-[#eadfce] pl-3">{expenses.map(item => <div key={item.id} className="flex min-w-0 items-center gap-2 py-2.5">
+      <div className="min-w-0 flex-1"><div className="truncate text-[11px] font-medium">{item.title}</div><div className="mt-0.5 truncate text-[10px] text-[#89948b]">{item.category} · {dateLabel(item)}</div></div>
+      <span className="shrink-0 whitespace-nowrap text-right text-[11px] font-medium tabular-nums text-[#48544b]">−{money(item.amount)}</span>
+      <button onClick={() => deleteItem(item.id)} aria-label={t.delete} className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-[#aeb7b0] hover:bg-rose-50 hover:text-rose-500"><X size={13}/></button>
+    </div>)}</div>
+  </details> : null;
+  return <>
+    <div className="divide-y divide-[#f0f2ef] sm:hidden"><ExpenseDetails/>{incomes.map(item => <div key={item.id} className="flex min-w-0 items-center gap-2.5 py-3">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#dcefe2] text-[#427153]">↗</span><div className="min-w-0 flex-1"><div className="truncate text-[12px] font-medium">{item.title}</div><div className="mt-0.5 truncate text-[10px] text-[#89948b]">{item.category} · {dateLabel(item)}</div></div><span className="shrink-0 whitespace-nowrap text-right text-[11px] font-semibold tabular-nums text-[#43805a]">+{money(item.amount)}</span><button onClick={() => deleteItem(item.id)} aria-label={t.delete} className="grid h-9 w-8 shrink-0 place-items-center rounded-lg text-[#aeb7b0] hover:bg-rose-50 hover:text-rose-500"><X size={14}/></button>
+    </div>)}</div>
+    <div className="hidden overflow-x-auto sm:block"><table className="w-full min-w-[450px] text-left"><thead><tr className="border-b border-[#f0f2ef] text-[9px] font-medium text-[#9ba49c]"><th className="pb-2 pl-1">{t.title}</th><th className="pb-2">{t.category}</th><th className="pb-2">{t.date}</th><th className="pb-2 text-right">{t.amount}</th><th/></tr></thead><tbody>
+      {expenses.length > 0 && <tr className="border-b border-[#f3f4f2]"><td colSpan={5} className="p-0"><ExpenseDetails compact/></td></tr>}
+      {incomes.map(item => <tr key={item.id} className="border-b border-[#f3f4f2] last:border-0"><td className="py-2.5 pl-1"><div className="flex items-center gap-2.5"><span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-[#dcefe2] text-[#427153]">↗</span><span className="text-[11px] font-medium">{item.title}</span></div></td><td className="py-2.5 text-[10px] text-[#859087]">{item.category}</td><td className="py-2.5 text-[10px] text-[#9aa39b]">{dateLabel(item)}</td><td className="py-2.5 text-right text-[11px] font-semibold text-[#43805a]">+{money(item.amount)}</td><td className="pl-2"><button onClick={() => deleteItem(item.id)} aria-label={t.delete} className="text-[#aeb7b0] hover:text-rose-500"><X size={13}/></button></td></tr>)}
+    </tbody></table></div>
+  </>;
+}
 function EntriesView({ t, lang, money, items, filter, setFilter, search, setSearch, deleteItem, setModal, expenseBreakdown, expense }: any) {
   const colors = ["#63876b", "#c2a044", "#9aaed0", "#c8ad6b", "#9b83b5", "#77a6a1", "#d48383", "#9aa49b"];
   let pieStart = 0;
