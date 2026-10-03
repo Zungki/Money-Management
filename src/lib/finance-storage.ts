@@ -11,6 +11,8 @@ type FinanceSnapshot = {
   lang: "th" | "en";
   currency: string;
   formula: "503020" | "buffett" | "fire" | "6jars";
+  savingMode?: "formula" | "custom";
+  customSavingTarget?: number;
   months: number;
   start: string;
   name: string;
@@ -51,6 +53,8 @@ export async function loadFinanceSnapshot(client: SupabaseClient, userId: string
     lang: pref?.language === "en" ? "en" : "th",
     currency: pref?.currency ?? "THB",
     formula: pref?.savings_formula ?? "503020",
+    savingMode: pref?.savings_mode === "custom" ? "custom" : "formula",
+    customSavingTarget: Number(pref?.custom_saving_target ?? 0),
     months: pref?.emergency_months ?? 6,
     start: pref?.emergency_start_month ?? new Date().toISOString().slice(0, 7),
     name: pref?.display_name ?? "",

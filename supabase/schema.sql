@@ -78,11 +78,17 @@ create table if not exists public.finance_preferences (
   language text not null default 'th' check (language in ('th', 'en')),
   currency text not null default 'THB',
   savings_formula text not null default '503020' check (savings_formula in ('503020', 'buffett', 'fire', '6jars')),
+  savings_mode text not null default 'formula' check (savings_mode in ('formula', 'custom')),
+  custom_saving_target numeric not null default 0 check (custom_saving_target >= 0),
   emergency_months integer not null default 6 check (emergency_months in (3, 6, 9, 12)),
   emergency_start_month text not null default to_char(current_date, 'YYYY-MM'),
   display_name text not null default '',
   updated_at timestamptz not null default now()
 );
+
+alter table public.finance_preferences
+  add column if not exists savings_mode text not null default 'formula',
+  add column if not exists custom_saving_target numeric not null default 0;
 
 create index if not exists finance_transactions_user_date_idx on public.finance_transactions(user_id, occurred_at desc);
 create index if not exists finance_deposits_user_goal_month_idx on public.finance_savings_deposits(user_id, goal_id, month);
@@ -158,15 +164,18 @@ begin
   from jsonb_to_recordset(coalesce(p_data->'debts','[]'::jsonb)) as d(id text, paid_months jsonb)
   cross join lateral jsonb_array_elements_text(coalesce(d.paid_months,'[]'::jsonb)) as p(month);
 
-  insert into public.finance_preferences (user_id,selected_goal,language,currency,savings_formula,emergency_months,emergency_start_month,display_name,updated_at)
+  insert into public.finance_preferences (user_id,selected_goal,language,currency,savings_formula,savings_mode,custom_saving_target,emergency_months,emergency_start_month,display_name,updated_at)
   values (owner_id, coalesce(p_data->>'selectedGoal','emergency'),
           case when p_data->>'lang' in ('th','en') then p_data->>'lang' else 'th' end,
           coalesce(p_data->>'currency','THB'),
           case when p_data->>'formula' in ('503020','buffett','fire','6jars') then p_data->>'formula' else '503020' end,
+          case when p_data->>'savingMode' = 'custom' then 'custom' else 'formula' end,
+          greatest(coalesce((p_data->>'customSavingTarget')::numeric,0),0),
           case when (p_data->>'months')::integer in (3,6,9,12) then (p_data->>'months')::integer else 6 end,
           coalesce(p_data->>'start',to_char(current_date,'YYYY-MM')), coalesce(p_data->>'name',''), now())
   on conflict (user_id) do update set selected_goal=excluded.selected_goal, language=excluded.language,
-    currency=excluded.currency, savings_formula=excluded.savings_formula, emergency_months=excluded.emergency_months,
+    currency=excluded.currency, savings_formula=excluded.savings_formula, savings_mode=excluded.savings_mode,
+    custom_saving_target=excluded.custom_saving_target, emergency_months=excluded.emergency_months,
     emergency_start_month=excluded.emergency_start_month, display_name=excluded.display_name, updated_at=now();
 end;
 $$;
